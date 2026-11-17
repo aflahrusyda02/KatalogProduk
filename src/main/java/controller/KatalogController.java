@@ -34,7 +34,12 @@ public class KatalogController {
     private Label jumlahLabel;
     @FXML
     private TilePane katalogPane;
+    @FXML
+    private Button simpanButton;
+    @FXML
+    private Button batalButton;
     private final ProdukRepository repository = new ProdukRepository();
+    private Produk produkDiedit;
 
     @FXML
     private void initialize() {
@@ -91,10 +96,14 @@ public class KatalogController {
         Label idLabel = new Label("ID: " + produk.getId());
         idLabel.getStyleClass().add("muted");
 
+        Button editButton = new Button("Edit");
+        editButton.getStyleClass().add("button-secondary");
+        editButton.setOnAction(e -> startEdit(produk));
         Button hapusButton = new Button("Hapus");
         hapusButton.getStyleClass().add("button-danger");
         hapusButton.setOnAction(e -> deleteProduct(produk));
         HBox aksi = new HBox(8);
+        aksi.getChildren().add(editButton);
         aksi.getChildren().add(hapusButton);
 
         VBox kartu = new VBox();
@@ -113,12 +122,17 @@ public class KatalogController {
 
     @FXML
     private void saveProduct() {
+        boolean modeEdit = produkDiedit != null;
         Produk produk;
         try {
             String nama = namaField.getText();
             long harga = Long.parseLong(hargaField.getText().trim());
             String foto = fotoBox.getValue();
-            produk = new Produk(nama, harga, foto);
+            if (modeEdit) {
+                produk = new Produk(produkDiedit.getId(), nama, harga, foto);
+            } else {
+                produk = new Produk(nama, harga, foto);
+            }
         } catch (NumberFormatException e) {
             pesanLabel.setText("Harga harus angka bulat, contoh 12000.");
             return;
@@ -127,21 +141,55 @@ public class KatalogController {
             return;
         }
         try {
-            repository.add(produk);
+            if (modeEdit) {
+                repository.update(produk);
+            } else {
+                repository.add(produk);
+            }
         } catch (SQLException e) {
             pesanLabel.setText("Gagal menyimpan. Lihat Output.");
             e.printStackTrace();
             return;
         }
-        namaField.clear();
-        hargaField.clear();
+        resetForm();
         try {
             showData();
-            pesanLabel.setText("Produk berhasil disimpan.");
+            if (modeEdit) {
+                pesanLabel.setText("Produk berhasil diperbarui.");
+            } else {
+                pesanLabel.setText("Produk berhasil disimpan.");
+            }
         } catch (SQLException e) {
             pesanLabel.setText("Data tersimpan, tetapi katalog gagal dimuat ulang.");
             e.printStackTrace();
         }
+    }
+
+    @FXML
+    private void cancelEdit() {
+        resetForm();
+        pesanLabel.setText("Edit dibatalkan.");
+    }
+
+    private void startEdit(Produk produk) {
+        produkDiedit = produk;
+        namaField.setText(produk.getNama());
+        hargaField.setText(String.valueOf(produk.getHarga()));
+        fotoBox.setValue(produk.getFoto());
+        simpanButton.setText("Perbarui");
+        batalButton.setVisible(true);
+        batalButton.setManaged(true);
+        pesanLabel.setText("Mengedit produk ID " + produk.getId() + ".");
+    }
+
+    private void resetForm() {
+        produkDiedit = null;
+        namaField.clear();
+        hargaField.clear();
+        fotoBox.setValue("roti.png");
+        simpanButton.setText("Simpan");
+        batalButton.setVisible(false);
+        batalButton.setManaged(false);
     }
 
     private void deleteProduct(Produk produk) {
@@ -159,6 +207,9 @@ public class KatalogController {
             pesanLabel.setText("Gagal menghapus. Lihat Output.");
             e.printStackTrace();
             return;
+        }
+        if (produkDiedit != null && produkDiedit.getId() == produk.getId()) {
+            resetForm();
         }
         try {
             showData();

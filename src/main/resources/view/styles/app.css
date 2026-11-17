@@ -52,3 +52,15 @@
 .button-danger:hover {
     -fx-background-color: #b91c1c;
 }
+.button-secondary {
+    -fx-background-color: #e2e8f0;
+    -fx-text-fill: #18334d;
+    -fx-padding: 6 16;
+    -fx-background-radius: 8;
+}
+.button-secondary:hover {
+    -fx-background-color: #cbd5e1;
+}
+.button-form {
+    -fx-padding: 10 24;
+}
