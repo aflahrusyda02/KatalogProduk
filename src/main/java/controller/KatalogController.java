@@ -3,12 +3,17 @@ package controller;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Optional;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
@@ -86,6 +91,12 @@ public class KatalogController {
         Label idLabel = new Label("ID: " + produk.getId());
         idLabel.getStyleClass().add("muted");
 
+        Button hapusButton = new Button("Hapus");
+        hapusButton.getStyleClass().add("button-danger");
+        hapusButton.setOnAction(e -> deleteProduct(produk));
+        HBox aksi = new HBox(8);
+        aksi.getChildren().add(hapusButton);
+
         VBox kartu = new VBox();
         kartu.setSpacing(8);
         kartu.setMinWidth(220);
@@ -96,6 +107,7 @@ public class KatalogController {
         kartu.getChildren().add(namaLabel);
         kartu.getChildren().add(hargaLabel);
         kartu.getChildren().add(idLabel);
+        kartu.getChildren().add(aksi);
         return kartu;
     }
 
@@ -128,6 +140,31 @@ public class KatalogController {
             pesanLabel.setText("Produk berhasil disimpan.");
         } catch (SQLException e) {
             pesanLabel.setText("Data tersimpan, tetapi katalog gagal dimuat ulang.");
+            e.printStackTrace();
+        }
+    }
+
+    private void deleteProduct(Produk produk) {
+        Alert konfirmasi = new Alert(Alert.AlertType.CONFIRMATION,
+                "Hapus produk \"" + produk.getNama() + "\"?",
+                ButtonType.OK, ButtonType.CANCEL);
+        konfirmasi.setHeaderText(null);
+        Optional<ButtonType> jawaban = konfirmasi.showAndWait();
+        if (jawaban.isEmpty() || jawaban.get() != ButtonType.OK) {
+            return;
+        }
+        try {
+            repository.delete(produk.getId());
+        } catch (SQLException e) {
+            pesanLabel.setText("Gagal menghapus. Lihat Output.");
+            e.printStackTrace();
+            return;
+        }
+        try {
+            showData();
+            pesanLabel.setText("Produk berhasil dihapus.");
+        } catch (SQLException e) {
+            pesanLabel.setText("Data terhapus, tetapi katalog gagal dimuat ulang.");
             e.printStackTrace();
         }
     }

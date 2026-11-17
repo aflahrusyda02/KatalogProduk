@@ -43,3 +43,12 @@
 .scroll-pane, .scroll-pane > .viewport {
     -fx-background-color: transparent;
 }
+.button-danger {
+    -fx-background-color: #dc2626;
+    -fx-text-fill: white;
+    -fx-padding: 6 16;
+    -fx-background-radius: 8;
+}
+.button-danger:hover {
+    -fx-background-color: #b91c1c;
+}
